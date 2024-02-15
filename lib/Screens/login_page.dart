@@ -1,5 +1,7 @@
 import 'package:chat_app/Screens/signup_screen.dart';
 import 'package:chat_app/widgets/uihelper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'homescreen.dart';
@@ -67,8 +69,26 @@ class _LoginScreenState extends State<LoginScreen> {
                             backgroundColor: Colors.deepPurpleAccent,
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(10))),
-                        onPressed: () {
-                          Navigator.push(context, MaterialPageRoute(builder: (context) => const HomeScreen(),));
+                        onPressed: () async{
+
+                          var mAuth = FirebaseAuth.instance;
+                          try {
+                            var userCred = await mAuth
+                                .signInWithEmailAndPassword(
+                                email: emailController.text.toString(),
+                                password: passController.text.toString());
+
+                            ///store userID in shared pref
+
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen(userId: userCred.user!.uid),));
+
+                          }on FirebaseAuthException catch(exception){
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Login Error: ${exception.message}")));
+                          }catch(e){
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("No Internet Connection")));
+                          }
+
+
                         },
                         child: const Text(
                           "Log in",

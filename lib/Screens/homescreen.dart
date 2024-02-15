@@ -1,10 +1,14 @@
+import 'package:chat_app/Screens/signup_screen.dart';
+import 'package:chat_app/models/user_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  String userId;
+  HomeScreen({required this.userId});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -12,7 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> contactList = [
-    {
+    /*{
       'image': 'assets/contact_image/person1.jpeg',
       'name': 'Allen',
       'desc': 'Hello!!',
@@ -36,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'image': 'assets/contact_image/person5.jpeg',
       'name': 'Bessie Cooper',
       'desc': 'Hello!!',
-    },
+    },*/
 
   ];
 
@@ -137,46 +141,73 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
                 const SizedBox(height: 20,),
-                Expanded(child: ListView.builder(
-                    itemCount: contactList.length,
-                    itemBuilder: (_, index) {
-                      return  Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8,horizontal: 5),
-                        child: ListTile(
-                          onTap: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context) =>  ChatScreen(name: contactList[index]['name'],image: contactList[index]['image']),));
-                          },
-                          leading: Container(
-                            height: 50,
-                            width: 50,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(30),
-                              color: Colors.black
-                            ),
-                            child: ClipRRect(
-                                borderRadius: BorderRadius.circular(60),
-                                child: Image.asset(contactList[index]['image'],fit: BoxFit.fitHeight,)),
-                          ),
-                          title: Text(contactList[index]['name'],style: const TextStyle(fontSize: 20,fontWeight: FontWeight.bold),),
-                          subtitle: Text(contactList[index]['desc']),
-                          trailing: Column(
-                            children: [
-                              const Text('12:00 AM'),
-                              const SizedBox(height: 5,),
-                              Container(
-                                height: 20,
-                                width: 20,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.deepPurpleAccent
-                                ),
-                                child: const Center(child: Text('1',style: TextStyle(color: Colors.white),)),
-                              )
-                            ],
-                          )
-                        ),
+                Expanded(child: FutureBuilder(
+                  future: FirebaseFirestore.instance.collection(SignupScreen.COLLECTION_PATH).get(),
+                  builder: (_, snapshot){
+                    if(snapshot.connectionState==ConnectionState.waiting){
+                      return Center(
+                        child: CircularProgressIndicator(),
                       );
-                    })),
+                    }
+                    return ListView.builder(
+                        itemCount: snapshot.data!.docs.length,
+                        itemBuilder: (_, index) {
+                          var eachUser = UserModel.fromDoc(snapshot.data!.docs[index].data());
+                          if(eachUser.uid!=widget.userId) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 5),
+                              child: ListTile(
+                                  onTap: () {
+                                    Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) =>
+                                          ChatScreen(
+                                              name: contactList[index]['name'],
+                                              image: contactList[index]['image']),));
+                                  },
+                                  leading: Container(
+                                    height: 50,
+                                    width: 50,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(30),
+                                        color: Colors.black
+                                    ),
+                                    child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(60),
+                                        child: Image.asset(
+                                          'assets/contact_image/person5.jpeg',
+                                          fit: BoxFit.fitHeight,)),
+                                  ),
+                                  title: Text(eachUser.uName!,
+                                    style: const TextStyle(fontSize: 20,
+                                        fontWeight: FontWeight.bold),),
+                                  subtitle: Text(eachUser.uEmail!),
+                                  trailing: Column(
+                                    children: [
+                                      const Text('12:00 AM'),
+                                      const SizedBox(height: 5,),
+                                      Container(
+                                        height: 20,
+                                        width: 20,
+                                        decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                                10),
+                                            color: Colors.deepPurpleAccent
+                                        ),
+                                        child: const Center(child: Text('1',
+                                          style: TextStyle(
+                                              color: Colors.white),)),
+                                      )
+                                    ],
+                                  )
+                              ),
+                            );
+                          } else {
+                            return Container();
+                          }
+                        });
+                  },
+                )),
                   ],
                 ),
               )

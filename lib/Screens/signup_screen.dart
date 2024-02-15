@@ -1,4 +1,5 @@
 import 'package:chat_app/Screens/login_page.dart';
+import 'package:chat_app/models/user_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../widgets/uihelper.dart';
 
 class SignupScreen extends StatefulWidget {
+  static String COLLECTION_PATH = 'users';
   const SignupScreen({super.key});
 
   @override
@@ -16,7 +18,7 @@ class _SignupScreenState extends State<SignupScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController passController = TextEditingController();
-  final String COLLECTION_PATH = 'users';
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,33 +87,43 @@ class _SignupScreenState extends State<SignupScreen> {
                         onPressed: () async {
                           var mAuth = FirebaseAuth.instance;
                           try {
-                            var userCred = await mAuth
-                                .createUserWithEmailAndPassword(
-                                email: emailController.text.toString(),
-                                password: passController.text.toString());
+                            var userCred =
+                                await mAuth.createUserWithEmailAndPassword(
+                                    email: emailController.text.toString(),
+                                    password: passController.text.toString());
 
                             var mFireStore = FirebaseFirestore.instance;
+                            var currTime =
+                                DateTime.now().millisecondsSinceEpoch;
 
-                            mFireStore.collection(COLLECTION_PATH).doc(userCred.user!.uid).set({
-                              "name" : nameController.text.toString(),
-                             "email" :  emailController.text.toString(),
-                              "password" : passController.text.toString(),
-                            });
-                          }on FirebaseAuthException catch(e){
-                            if(e.code=='weak-password'){
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("The password provided is too weak")));
-                            }else if(e.code=='email-already-in-use'){
-                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("The account already exists for that email.")));
+                            mFireStore
+                                .collection(SignupScreen.COLLECTION_PATH)
+                                .doc(userCred.user!.uid)
+                                .set(UserModel(
+                                        uid: userCred.user!.uid,
+                                        uName: nameController.text.toString(),
+                                        uEmail: emailController.text.toString(),
+                                        createdAt: currTime)
+                                    .toDoc());
+
+                            Navigator.pop(context);
+                          } on FirebaseAuthException catch (e) {
+                            if (e.code == 'weak-password') {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          "The password provided is too weak")));
+                            } else if (e.code == 'email-already-in-use') {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text(
+                                          "The account already exists for that email.")));
                             }
-                          }catch(e){
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("No Internet Connection")));
-
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text("No Internet Connection")));
                           }
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const LoginScreen(),
-                              ));
                         },
                         child: const Text(
                           "Sign up",
