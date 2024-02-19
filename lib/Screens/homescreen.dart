@@ -149,63 +149,68 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: CircularProgressIndicator(),
                       );
                     }
-                    return ListView.builder(
-                        itemCount: snapshot.data!.docs.length,
-                        itemBuilder: (_, index) {
-                          var eachUser = UserModel.fromDoc(snapshot.data!.docs[index].data());
-                          if(eachUser.uid!=widget.userId) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 8, horizontal: 5),
-                              child: ListTile(
-                                  onTap: () {
-                                    Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) =>
-                                          ChatScreen(
-                                              name: contactList[index]['name'],
-                                              image: contactList[index]['image']),));
-                                  },
-                                  leading: Container(
-                                    height: 50,
-                                    width: 50,
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(30),
-                                        color: Colors.black
+                    if(snapshot.hasData){
+                      return ListView.builder(
+                          itemCount: snapshot.data!.docs.length,
+                          itemBuilder: (_, index) {
+                            var eachUser = UserModel.fromDoc(snapshot.data!.docs[index].data());
+                            if(eachUser.uid!=widget.userId) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 8, horizontal: 5),
+                                child: ListTile(
+                                    onTap: () {
+                                      Navigator.push(context, MaterialPageRoute(
+                                        builder: (context) =>
+                                            ChatScreen(currUserId: widget.userId, eachUserId: eachUser.uid!, name: eachUser.uName!,))
+                                      );
+                                    },
+                                    leading: Container(
+                                      height: 50,
+                                      width: 50,
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(30),
+                                          color: Colors.black
+                                      ),
+                                      child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(60),
+                                          child: Image.asset(
+                                            'assets/contact_image/person5.jpeg',
+                                            fit: BoxFit.fitHeight,)),
                                     ),
-                                    child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(60),
-                                        child: Image.asset(
-                                          'assets/contact_image/person5.jpeg',
-                                          fit: BoxFit.fitHeight,)),
-                                  ),
-                                  title: Text(eachUser.uName!,
-                                    style: const TextStyle(fontSize: 20,
-                                        fontWeight: FontWeight.bold),),
-                                  subtitle: Text(eachUser.uEmail!),
-                                  trailing: Column(
-                                    children: [
-                                      const Text('12:00 AM'),
-                                      const SizedBox(height: 5,),
-                                      Container(
-                                        height: 20,
-                                        width: 20,
-                                        decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                                10),
-                                            color: Colors.deepPurpleAccent
-                                        ),
-                                        child: const Center(child: Text('1',
-                                          style: TextStyle(
-                                              color: Colors.white),)),
-                                      )
-                                    ],
-                                  )
-                              ),
-                            );
-                          } else {
-                            return Container();
-                          }
-                        });
+                                    title: Text(eachUser.uName!,
+                                      style: const TextStyle(fontSize: 20,
+                                          fontWeight: FontWeight.bold),),
+                                    subtitle: Text(eachUser.uEmail!),
+                                    /*trailing: Column(
+                                      children: [
+                                        *//*const Text('12:00 AM'),*//*
+                                        const SizedBox(height: 5,),
+                                        Container(
+                                          height: 20,
+                                          width: 20,
+                                          decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(
+                                                  10),
+                                              color: Colors.deepPurpleAccent
+                                          ),
+                                          child: const Center(child: Text('1',
+                                            style: TextStyle(
+                                                color: Colors.white),)),
+                                        )
+                                      ],
+                                    )*/
+                                ),
+                              );
+                            } else {
+                              return Container();
+                            }
+                          });
+                    } else {
+                      return Center(
+                        child: Text('No Users Found!!'),
+                      );
+                    }
                   },
                 )),
                   ],
